@@ -14,9 +14,16 @@ class SongRepositoryFirebase extends SongRepository {
     'laihong-first-practice-default-rtdb.asia-southeast1.firebasedatabase.app',
     '/songs.json',
   );
-
+  
+  List<Song>? _cachedSongs;
+  void clearCache() {
+    _cachedSongs = null;
+  }
   @override
-  Future<List<Song>> fetchSongs() async {
+  Future<List<Song>> fetchSongs({bool forceFetch = false}) async {
+    if (!forceFetch && _cachedSongs != null) {
+      return _cachedSongs!;
+    }
     final http.Response response = await http.get(songsUri);
 
     if (response.statusCode == 200) {
@@ -27,6 +34,8 @@ class SongRepositoryFirebase extends SongRepository {
       for (final entry in songJson.entries) {
         result.add(SongDto.fromJson(entry.key, entry.value));
       }
+      
+      _cachedSongs = result;
       return result;
     } else {
       // 2- Throw expcetion if any issue
@@ -46,10 +55,11 @@ class SongRepositoryFirebase extends SongRepository {
     final newLikes = song.like + 1;
 
     final response = await http.put(uri, body: jsonEncode(newLikes));
-
+    
     if (response.statusCode != 200) {
       throw Exception("Failed to like song");
     }
+    clearCache();
   }
 }
 
