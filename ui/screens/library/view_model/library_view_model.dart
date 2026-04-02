@@ -35,6 +35,17 @@ class LibraryViewModel extends ChangeNotifier {
   void _init() async {
     fetchSong();
   }
+  
+  Future<void> likeSong(Song song) async {
+    try {
+      await songRepository.likeSong(song.id);
+
+      fetchSong();
+    } catch (e) {
+      data = AsyncValue.error(e);
+      notifyListeners();
+    }
+  }
 
   void fetchSong() async {
     // 1- Loading state
